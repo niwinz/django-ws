@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <title>{{ title }}</title>
+        <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js" type="text/javascript"></script>
+        <style type="text/css">
+        body { font-size: 12px; font-family: monospace; }
+        </style>
+    </head>
+    <body>
+        <script type="text/javascript">
+        $(document).ready(function() {
+            var ws = new WebSocket("ws://localhost:8888/socket/");
+            ws.onopen = function () {
+                ws.send("First msg");
+            }
+            ws.onmessage = function(event) {
+                $('#main').html(event.data)
+            }
+        });
+        </script>
+        <div id="main"></div>
+    </body>
+</div>
+        

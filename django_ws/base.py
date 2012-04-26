@@ -7,18 +7,48 @@ class WebSocketHandler(object):
     """
     Base class for a websocket handler.
     """
+    _first = True
 
-    def __init__(self, _id, in_queue, socket):
+    def __init__(self, _id, in_queue, socket, server):
         self.socket = socket
         self.in_queue = in_queue
         self._id = _id
+        self.server = server
     
     def __call__(self, event):
         while not event.is_set():
             message = self.in_queue.get(True)
-            self.on_message(message)
+            ret = None
+
+            if self._first:
+                ret = self.on_open(message)
+                self._first = False
+
+            if ret is None:
+                self.on_message(message)
+
+        self.on_close()
 
     def on_message(self, message):
+        """
+        On message receives hook
+        """
+        pass
+    
+    def on_open(self, message):
+        """
+        On first message received hook.
+
+        If this returns None, on_message is executed.
+        If your returns False or other value on this hook.
+        on_message is not executed.
+        """
+        pass
+
+    def on_close(self):
+        """
+        On connection is closed hook.
+        """
         pass
 
     def send(self, message):
@@ -123,7 +153,7 @@ class BaseWebSocketServer(object):
                 _in_queue = self.queue_class()
                 _in_queue.put(_msg, block=False)
 
-                _handler = _handler_class(_id, _in_queue, self.pub_socket)
+                _handler = _handler_class(_id, _in_queue, self.pub_socket, self)
                 _worker, _event = self.spawn(_handler)
 
                 self.connections[_id] = (_handler, _in_queue, _worker, _event)
