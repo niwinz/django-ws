@@ -33,13 +33,12 @@ class Command(BaseCommand):
     help = "Starts a websocket server."
     args = "[optional port number or ipaddr:port]"
 
-
     def start_worker(self, **options):
         print "starting worker"
 
         if options['ws_gevent']:
             def _worker(options):
-                from django_ws.gevent import GeventWebSocketServer
+                from django_ws.gevent_server import GeventWebSocketServer
                 GeventWebSocketServer.setup()
                 instance = GeventWebSocketServer(routes=DEFAULT_HANDLERS, **options)
                 instance.start()
@@ -50,7 +49,7 @@ class Command(BaseCommand):
 
         elif options['ws_threaded']:
             def _worker(options):
-                from django_ws.threaded import ThreadedWebSocketServer
+                from django_ws.threaded_server import ThreadedWebSocketServer
                 instance = ThreadedWebSocketServer(routes=DEFAULT_HANDLERS, **options)
                 instance.start()
 
@@ -61,12 +60,27 @@ class Command(BaseCommand):
             raise NotImplementedError("Invalid process managment selected")
 
 
-    def handle(self, *args, **options):
+    def handle(self, hostport=8888, *args, **options):
+        #if ":" in hostport:
+        #    host, port = hostport.split(":")
+        #else:
+        #    host, port = '', hostport
+        #
+        #try:
+        #    port = int(port)
+        #except (ValueError, TypeError) as e:
+        #    raise Exception("Invalid port number")
+    
+        # temporal workaround
+
+        host = ''
+        port = int(hostport)
+
         application = tornado.web.Application([
             (options['ws_url'], MainHandler),
         ], **options)
 
-        application.listen(8888)
+        application.listen(port, host)
         self.start_worker(**options)
 
         tornado.ioloop.IOLoop.instance().start()
