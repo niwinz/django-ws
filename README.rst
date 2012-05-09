@@ -26,8 +26,6 @@ Define yor own simple handler on ``ws_handlers.py``::
         def on_message(self, message):
             self.send(str(random.randint(1,100)))
         
-
-    
 Define sample routes on your settings::
     
     DEFAULT_WS_HANDLERS = {
@@ -57,9 +55,70 @@ For a concrete example, see ``examples`` directory.
 Handlers api reference.
 -----------------------
 
-TODO
+The basic handler have three methods that can be overridden: ``on_message``, ``on_open`` and ``on_close``. The
+first message is received by ``on_open`` method, if this method returns None or nothink (alias of ``return None``), 
+the same message is received by ``on_message``. If you do not need this behavior, return ``False`` or ``True`` on
+``on_open`` method.
+
+``on_close`` method is called on conection is closed, this method does not receive any message.
+
+Interface of ``WebSockerHandler``::
+    
+    class WebSocketHandler(object):
+        def on_open(self, message):
+            pass
+
+        def on_message(self, message):
+            pass
+
+        def on_close(self):
+            pass
+            
 
 Command line reference.
 -----------------------
 
-TODO
+``--push-socket``
+
+    Tells to django-ws server (tornado) to use other push socket instead of default. This
+    socket is used to send data to django handler interface.
+
+    **Default**: ``ipc:///tmp/ws_push``
+
+``--sub-socket``
+
+    Tells to django-ws server (tornado) to use other sub socket instead of default. This 
+    socket is used to receive response stream from django handlers.
+
+    **Default**: ``ipc:///tmp/ws_sub``
+
+``--websocket-url``
+
+    With this parameter you can set distinct websocket url. 
+
+    **Default**: ``/socket``
+
+``--threaded``
+
+    With this parameter, tells to django handlers run in threaded mode. Every websocket connection
+    creates and mantains one thread.
+
+``--gevent``
+
+    With this parameter, tells to django handlers run in greenlets. Every websocket connection
+    creates and mantains one greenlet. This is useful if you keep many open connections. But, it 
+    should be noted that the connection to the database must be greensafe.
+
+``--multiprocess``
+
+    Same as ``--threaded`` but this mantains one python process for each websocket connection.
+
+    **Note**: this is not implemented currently.
+
+
+Todo:
+-----
+
+* More documentation.
+* More tests
+* Integration of TornadIO2 with same handlers.
